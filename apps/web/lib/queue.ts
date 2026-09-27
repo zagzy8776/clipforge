@@ -2,25 +2,43 @@ import Redis from "ioredis";
 
 let redis: Redis | null = null;
 
-export function getRedis(): Redis {
-  if (!redis) {
-    const url = process.env.REDIS_URL;
-    if (!url) throw new Error("REDIS_URL not configured");
-
-    const needsTls = url.startsWith("rediss://");
-    redis = new Redis(url, {
+function parseRedisUrl(url: string): Record<string, unknown> {
+  try {
+    const parsed = new URL(url);
+    const config: Record<string, unknown> = {
+      host: parsed.hostname,
+      port: parseInt(parsed.port || "6379", 10),
       maxRetriesPerRequest: 1,
-      retryStrategy(times) {
-        if (times > 3) return null; // stop retrying
+      retryStrategy(times: number) {
+        if (times > 3) return null;
         return Math.min(times * 500, 3000);
       },
       lazyConnect: true,
       connectTimeout: 10000,
       enableOfflineQueue: false,
-      tls: needsTls ? { rejectUnauthorized: false } : undefined,
-      // Keep alive to prevent Vercel's idle timeout
       keepAlive: 30000,
-    });
+    };
+    if (parsed.username) config.username = decodeURIComponent(parsed.username);
+    if (parsed.password) config.password = decodeURIComponent(parsed.password);
+    if (parsed.pathname && parsed.pathname.length > 1) {
+      config.db = parseInt(parsed.pathname.slice(1), 10);
+    }
+    if (parsed.protocol === "rediss:" || url.includes("ssl=true")) {
+      config.tls = { rejectUnauthorized: false };
+    }
+    return config;
+  } catch {
+    // Fallback: try ioredis native parsing
+    return { lazyConnect: true, connectTimeout: 10000, maxRetriesPerRequest: 1 };
+  }
+}
+
+export function getRedis(): Redis {
+  if (!redis) {
+    const url = process.env.REDIS_URL;
+    if (!url) throw new Error("REDIS_URL not configured");
+    const config = parseRedisUrl(url);
+    redis = new Redis(config as any);
   }
   return redis;
 }
