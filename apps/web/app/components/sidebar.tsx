@@ -7,7 +7,6 @@ const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: "📊" },
   { href: "/projects", label: "Projects", icon: "📁" },
   { href: "/upload", label: "New Project", icon: "➕" },
-  { href: "/settings", label: "Settings", icon: "⚙️" },
 ];
 
 export default function Sidebar() {
