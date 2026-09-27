@@ -11,10 +11,7 @@
   "dependencies": {
     "next": "16.3.6",
     "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "@clipforge/api": "workspace:*",
-    "@clipforge/auth": "workspace:*",
-    "@tailwindcss/postcss": "^4"
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@types/node": "^20",

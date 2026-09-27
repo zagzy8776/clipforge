@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { destroySession } from "@clipforge/auth";
+import { destroySession } from "../../../lib/auth";
 
 export async function POST(request: Request) {
   const token = request.cookies.get("session")?.value;
