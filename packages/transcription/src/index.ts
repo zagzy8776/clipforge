@@ -1,10 +1,6 @@
-export type { TranscriptionProvider } from "./provider.js";
-export {
-  createTranscriptionProvider,
-  whisperAvailable,
-  withFallback,
-  type TranscriptionProviderName,
-} from "./provider.js";
-export { MockTranscriptionProvider } from "./providers/mock.js";
-export { WhisperTranscriptionProvider, type WhisperOptions } from "./providers/whisper.js";
-export { groupIntoParagraphs, type ParagraphOptions } from "./paragraphs.js";
+export type { TranscriptionProvider, TranscriptSegment, TranscriptionOptions, WordTimestamp } from "./types.js";
+export { DeepgramProvider } from "./providers/deepgram.js";
+export { GroqWhisperProvider } from "./providers/groq.js";
+export { SilenceFallbackProvider } from "./providers/silence-fallback.js";
+export { createTranscriptionProvider, withFallback } from "./factory.js";
+export { detectFillers, stripFillersFromText } from "./filler.js";
