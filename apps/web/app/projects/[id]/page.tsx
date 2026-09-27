@@ -5,13 +5,25 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import AppShell from "../../components/app-shell";
 
+interface ProjectJob {
+  id: string;
+  type: string;
+  status: string;
+  progress: number;
+  message: string;
+  createdAt: string;
+  completedAt: string;
+}
+
 interface ProjectDetail {
   id: string;
   name: string;
   status: string;
   sourcePath: string;
   sourceUrl?: string;
-  clips: Array<{ id: string; title: string; score: number }>;
+  config: Record<string, unknown>;
+  clips: Array<{ id: string; rank: number; title: string; score: number; status: string; duration: number }>;
+  jobs: ProjectJob[];
   stats: {
     totalCandidates: number;
     selectedClips: number;
