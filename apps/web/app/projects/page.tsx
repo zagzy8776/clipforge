@@ -19,7 +19,7 @@ const STATUS_COLORS: Record<string, string> = {
   failed: "bg-red-500/10 text-red-400 border border-red-500/20",
 };
 
-export default function DashboardPage() {
+export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -31,41 +31,19 @@ export default function DashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const completed = projects.filter((p) => p.status === "completed");
-  const processing = projects.filter((p) => p.status === "processing" || p.status === "created");
-  const totalClips = projects.reduce((acc, p) => acc + (p.clips?.length ?? 0), 0);
-
   return (
     <AppShell>
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          <p className="mt-1 text-sm text-zinc-500">Overview of your video intelligence projects</p>
+          <h1 className="text-2xl font-bold text-white">Projects</h1>
+          <p className="mt-1 text-sm text-zinc-500">All your video processing projects</p>
         </div>
         <Link href="/upload" className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500">
           + New Project
         </Link>
       </div>
 
-      <div className="mb-8 grid grid-cols-3 gap-4">
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-          <dt className="text-sm text-zinc-500">Projects</dt>
-          <dd className="mt-1 text-3xl font-bold text-white">{projects.length}</dd>
-        </div>
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-          <dt className="text-sm text-zinc-500">Total Clips</dt>
-          <dd className="mt-1 text-3xl font-bold text-white">{totalClips}</dd>
-        </div>
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-          <dt className="text-sm text-zinc-500">Processing</dt>
-          <dd className="mt-1 text-3xl font-bold text-amber-400">{processing.length}</dd>
-        </div>
-      </div>
-
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50">
-        <div className="border-b border-zinc-800 px-5 py-3">
-          <h2 className="text-sm font-semibold text-zinc-300">Recent Projects</h2>
-        </div>
         {loading ? (
           <div className="px-5 py-8 text-center text-sm text-zinc-500">Loading projects...</div>
         ) : projects.length === 0 ? (
@@ -92,9 +70,12 @@ export default function DashboardPage() {
                     </p>
                   </div>
                 </div>
-                <span className={`rounded-full px-3 py-0.5 text-xs font-medium ${STATUS_COLORS[project.status] ?? STATUS_COLORS.created}`}>
-                  {project.status}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className={`rounded-full px-3 py-0.5 text-xs font-medium ${STATUS_COLORS[project.status] ?? STATUS_COLORS.created}`}>
+                    {project.status}
+                  </span>
+                  <span className="text-zinc-600">→</span>
+                </div>
               </Link>
             ))}
           </div>

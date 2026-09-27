@@ -26,7 +26,9 @@ export default function Home() {
             Open Dashboard
           </Link>
           <a
-            href="https://github.com"
+            href="https://github.com/zagzy8776/clipforge"
+            target="_blank"
+            rel="noopener noreferrer"
             className="rounded-full border border-zinc-700 px-8 py-3 text-sm font-semibold text-zinc-300 transition hover:bg-zinc-800"
           >
             View Source
