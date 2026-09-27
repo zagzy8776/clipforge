@@ -1,21 +1,41 @@
-import { Pool } from "pg";
+import { Pool, type PoolConfig } from "pg";
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_TLS_REJECT_UNAUTHORIZED === "0"
-    ? { rejectUnauthorized: false }
-    : { rejectUnauthorized: true },
-  max: 5,
-  idleTimeoutMillis: 10000,
-  connectionTimeoutMillis: 5000,
-});
+let pool: Pool | null = null;
 
-export default pool;
+function getPool(): Pool {
+  if (!pool) {
+    const config: PoolConfig = {
+      connectionString: process.env.DATABASE_URL,
+      max: 3,
+      idleTimeoutMillis: 10000,
+      connectionTimeoutMillis: 8000,
+    };
+    if (process.env.NODE_TLS_REJECT_UNAUTHORIZED === "0" || process.env.DATABASE_URL?.includes("sslmode=require")) {
+      config.ssl = { rejectUnauthorized: false };
+    }
+    pool = new Pool(config);
+  }
+  return pool;
+}
 
 export async function query<T = Record<string, unknown>>(
   text: string,
   params?: unknown[],
 ): Promise<{ rows: T[]; rowCount: number | null }> {
-  const result = await pool.query(text, params);
-  return { rows: result.rows as T[], rowCount: result.rowCount };
+  const client = await getPool().connect();
+  try {
+    const result = await client.query(text, params);
+    return { rows: result.rows as T[], rowCount: result.rowCount };
+  } finally {
+    client.release();
+  }
+}
+
+export async function testConnection(): Promise<boolean> {
+  try {
+    await query("SELECT 1");
+    return true;
+  } catch {
+    return false;
+  }
 }

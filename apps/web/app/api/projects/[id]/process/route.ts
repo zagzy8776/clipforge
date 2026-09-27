@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { query } from "../../../../../lib/db";
-import { enqueueJob } from "../../../../../lib/queue";
 
 /**
  * POST /api/projects/[id]/process — Start processing a project
  * 1. Verify project exists
  * 2. Create a job in PostgreSQL
- * 3. Enqueue the job to Redis (worker on Fly.io picks it up)
+ * 3. Try to enqueue to Redis (worker on Fly.io picks it up)
  */
 export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -43,13 +42,23 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       [id],
     );
 
-    // Enqueue job to Redis for the worker
-    await enqueueJob({
-      jobId,
-      projectId: id,
-      type: "process",
-      payload: { projectName: project.id },
-    });
+    // Try to enqueue to Redis — don't fail if Redis is down
+    try {
+      const { enqueueJob } = await import("../../../../../lib/queue");
+      await enqueueJob({
+        jobId,
+        projectId: id,
+        type: "process",
+        payload: { projectName: project.id },
+      });
+    } catch (redisErr) {
+      console.warn("Redis enqueue failed (job still in PG):", redisErr);
+      // Update job message so frontend shows the issue
+      await query(
+        "UPDATE jobs SET message = 'Queued in DB. Waiting for Redis connection.' WHERE id = $1",
+        [jobId],
+      );
+    }
 
     return NextResponse.json({
       jobId,
@@ -60,7 +69,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
   } catch (err) {
     console.error("POST /api/projects/[id]/process error:", err);
     return NextResponse.json(
-      { error: "Failed to start processing" },
+      { error: "Failed to start processing", details: err instanceof Error ? err.message : String(err) },
       { status: 500 },
     );
   }
