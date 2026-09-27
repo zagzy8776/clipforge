@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "dist" },
+  "include": ["src/**/*.ts"],
+  "references": [
+    { "path": "../types" }, { "path": "../storage" }, { "path": "../core" },
+    { "path": "../director" }, { "path": "../evaluation" }, { "path": "../ffmpeg" }
+  ]
+}

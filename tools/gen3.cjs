@@ -1,0 +1,11 @@
+var fs = require("fs");
+var a = [];
+a.push('function sHook(t:string):number{let s=0;if(HOOK_PAT.test(t))s+=.45;if(/^[^.!?]{5,40}[.!?]/.test(t))s+=.15;if(/\\b(you|your)\\b/i.test(t.slice(0,50)))s+=.1;if(t.includes(":"))s+=.1;if(t.includes("?"))s+=.1;return Math.min(1,s)}');
+a.push('function sEmotion(t:string):number{let s=0;s+=Math.min(.5,(t.match(ES_PAT)??[]).length*.25);s+=Math.min(.3,(t.match(EM_PAT)??[]).length*.1);if(/\\b(but|yet|though)\\b/i.test(t)&&/\\b(scared|fail|pain)\\b/i.test(t)&&/\\b(best|amazing|love|great)\\b/i.test(t))s+=.4;return Math.min(1,s)}');
+a.push('function sNovelty(t:string):number{let s=0;if(/\\b(but here.s|actually|nobody|rarely|never|secret|truth is)\\b/i.test(t))s+=.4;if(t.includes("?"))s+=.15;return Math.min(1,s)}');
+a.push('function sInfo(t:string):number{return Math.min(1,(t.match(/\\d+/g)??[]).length*.1+(t.match(/\\b(year|years|ago|example|result|college|world)\\b/gi)??[]).length*.1+.1)}');
+a.push('function sCuriosity(t:string):number{let s=0;if(CUR_PAT.test(t))s+=.5;if(/[?]/.test(t))s+=.3;if(NM_PAT.test(t))s+=.15;return Math.min(1,s)}');
+a.push('function sPayoff(t:string):number{let s=0;if(PAY_PAT.test(t))s+=.5;if(/\\b(because|that.s why|finally|in the end)\\b/i.test(t))s+=.25;const last=t.split(/[.!?]+/).filter(x=>x.trim().length>5).slice(-1)[0]??"";if(/\\b(realized|learned|changed|decided|made)\\b/i.test(last))s+=.2;return Math.min(1,s)}');
+a.push('function sCoherence(t:string):number{let s=.2;const sentences=t.split(/[.!?]+/).filter(x=>x.trim().length>3);if(sentences.length>=2)s+=.2;if(sentences.length>=3)s+=.15;if(NM_PAT.test(t))s+=.1;if(CON_PAT.test(t))s+=.1;return Math.min(1,s)}');
+fs.appendFileSync("e:/video/packages/ai/src/providers/signals.ts", a.join("\n") + "\n");
+console.log("part3:", a.length);

@@ -1,0 +1,17 @@
+node_modules/
+.toolprobe/
+input/
+output/
+tmp/
+*.log
+dist/
+.next/
+apps/
+.git/
+.env
+.env.local
+tests/
+tools/
+docker/
+fly.toml
+*.tsbuildinfo

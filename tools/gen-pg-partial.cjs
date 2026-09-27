@@ -1,0 +1,13 @@
+var fs = require("fs");
+var L = [];
+L.push('import type { Project, ProjectClip } from "@clipforge/types";');
+L.push('import type { ProjectRepository, Job } from "../repository.js";');
+L.push('');
+L.push('export class PostgresRepository implements ProjectRepository {');
+L.push('  private pool: any;');
+L.push('  constructor(connStr: string) { const { Pool } = require("pg"); this.pool = new Pool({ connectionString: connStr, max: 10 }); }');
+L.push('  async listProjects(): Promise<Project[]> { const { rows } = await this.pool.query("SELECT * FROM projects ORDER BY created_at DESC"); return rows.map(this.rowToProject); }');
+L.push('  async getProject(id: string): Promise<Project | null> { const { rows } = await this.pool.query("SELECT * FROM projects WHERE id=$1", [id]); return rows[0] ? this.rowToProject(rows[0]) : null; }');
+L.push('  async createProject(p: Project): Promise<Project> { await this.pool.query("INSERT INTO projects(id,user_id,name,status,config,stats,created_at,updated_at) VALUES($1,\\\'system\\\',$2,$3,$4,$5,$6,$7)", [p.id, p.name, p.status, JSON.stringify(p.config ?? {}), JSON.stringify(p.stats), p.createdAt, p.updatedAt]); return p; }');
+fs.writeFileSync("e:/video/packages/storage/src/postgres-repository.ts", L.join("\n"), "utf-8");
+console.log("wrote partial:", L.length, "lines");

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.env
+.env.local
+output/
+input/
+.toolprobe/
+tmp/
+*.log

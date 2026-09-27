@@ -1,0 +1,18 @@
+var fs = require("fs");
+var a = [];
+a.push('function bR(hook:number,emotion:number,novelty:number,curiosity:number,payoff:number,coherence:number,text:string):string[]{');
+a.push('  const r:string[]=[];');
+a.push('  if(hook>50)r.push("strong opening");if(emotion>50)r.push("high emotion");');
+a.push('  if(emotion>30&&CON_PAT.test(text))r.push("emotional contrast arc");');
+a.push('  if(novelty>50)r.push("novel perspective");if(curiosity>50)r.push("curiosity gap");');
+a.push('  if(payoff>50)r.push("narrative payoff");');
+a.push('  const arc=detectNarrativeArc(text);if(arc.hasArc)r.push("narrative arc: "+arc.phases.join(" \\u2192 "));');
+a.push('  if(coherence>50)r.push("self-contained story");if(CON_PAT.test(text))r.push("turning point");');
+a.push('  if(NM_PAT.test(text))r.push("temporal marker");if(r.length===0)r.push("balanced composition");');
+a.push('  return r;}');
+a.push('export function extractTopic(text:string):string{const f=text.split(/[.!?]/)[0]?.trim()??"");return f.length>80?f.slice(0,77)+"...":f}');
+a.push('export function summarizeSection(text:string):string{return text.split(/[.!?]+/).filter(s=>s.trim().length>10).slice(0,2).join(". ").trim()+"."}');
+a.push('export function extractKeywords(text:string):string[]{const freq=new Map<string,number>();for(const w of text.toLowerCase().split(/\\s+/)){const c=w.replace(/[^a-z]/g,"");if(c.length>3)freq.set(c,(freq.get(c)??0)+1)}return[...freq.entries()].sort((a,b)=>b[1]-a[1]).slice(0,8).map(([w])=>w)}');
+a.push('function clamp(v:number):number{return Math.round(Math.min(100,Math.max(0,v)))}');
+fs.appendFileSync("e:/video/packages/ai/src/providers/signals.ts", a.join("\n") + "\n");
+console.log("part4:", a.length);

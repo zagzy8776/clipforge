@@ -1,0 +1,24 @@
+{
+  "name": "@clipforge/ai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./providers/signals": {
+      "types": "./src/providers/signals.ts",
+      "default": "./src/providers/signals.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@clipforge/types": "workspace:*"
+  }
+}

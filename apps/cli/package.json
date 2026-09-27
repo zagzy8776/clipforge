@@ -1,0 +1,20 @@
+{
+  "name": "@clipforge/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "clipforge": "./bin/clipforge.mjs"
+  },
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@clipforge/ai": "workspace:*",
+    "@clipforge/analysis": "workspace:*",
+    "@clipforge/core": "workspace:*",
+    "@clipforge/ffmpeg": "workspace:*",
+    "@clipforge/rendering": "workspace:*",
+    "@clipforge/types": "workspace:*"
+  }
+}

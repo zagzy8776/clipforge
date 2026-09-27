@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": ["src/**/*.ts"],
+  "references": [
+    { "path": "../types" },
+    { "path": "../ai" },
+    { "path": "../ffmpeg" },
+    { "path": "../scoring" },
+    { "path": "../transcription" },
+    { "path": "../analysis" },
+    { "path": "../rendering" }
+  ]
+}

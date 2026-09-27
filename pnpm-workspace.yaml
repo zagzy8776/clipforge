@@ -1,0 +1,13 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+  - "worker"
+  - "tools"
+
+onlyBuiltDependencies:
+  - esbuild
+  - ffmpeg-static
+allowBuilds:
+  esbuild: true
+  ffmpeg-static: true
+  unrs-resolver: true

@@ -1,0 +1,18 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/types" },
+    { "path": "./packages/ffmpeg" },
+    { "path": "./packages/ai" },
+    { "path": "./packages/scoring" },
+    { "path": "./packages/transcription" },
+    { "path": "./packages/analysis" },
+    { "path": "./packages/rendering" },
+    { "path": "./packages/director" },
+    { "path": "./packages/evaluation" },
+    { "path": "./packages/core" },
+    { "path": "./apps/cli" },
+    { "path": "./tools" }
+  ]
+}
+
