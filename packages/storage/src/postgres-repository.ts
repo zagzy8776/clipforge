@@ -109,9 +109,19 @@ export class PostgresRepository implements ProjectRepository {
     const fields: string[] = [];
     const values: unknown[] = [];
     let idx = 1;
+    // Map camelCase keys to snake_case DB columns
+    const columnMap: Record<string, string> = {
+      projectId: "project_id", status: "status", progress: "progress",
+      message: "message", input: "input", output: "output", error: "error",
+      artifacts: "artifacts", retries: "retries", maxRetries: "max_retries",
+      idempotencyKey: "idempotency_key", createdAt: "created_at",
+      startedAt: "started_at", completedAt: "completed_at",
+      lockedBy: "locked_by", lockedAt: "locked_at",
+    };
     for (const [k, val] of Object.entries(u)) {
       if (k === "id" || k === "createdAt") continue;
-      fields.push(k + "=$" + idx++);
+      const col = columnMap[k] ?? k;
+      fields.push(col + "=$" + idx++);
       values.push(typeof val === "object" ? JSON.stringify(val) : val);
     }
     if (fields.length === 0) return (await this.getJob(jid))!;
