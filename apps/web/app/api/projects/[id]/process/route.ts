@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { query } from "../../../../lib/db";
-import { enqueueJob } from "../../../../lib/queue";
+import { query } from "../../../../../lib/db";
+import { enqueueJob } from "../../../../../lib/queue";
 
 /**
  * POST /api/projects/[id]/process — Start processing a project
