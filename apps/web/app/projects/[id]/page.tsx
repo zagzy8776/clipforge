@@ -38,13 +38,26 @@ export default function ProjectDetailPage() {
   async function handleProcess() {
     setProcessing(true);
     try {
-      await fetch(`/api/v1/projects/${id}/process`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sourcePath: project?.sourcePath ?? "" }) });
+      await fetch(`/api/projects/${id}/process`, { method: "POST", headers: { "Content-Type": "application/json" } });
       // Reload project status
       const updated = await fetch(`/api/projects/${id}`).then((r) => r.json());
       setProject(updated);
     } catch { /* ignore */ }
     setProcessing(false);
   }
+
+  // Auto-refresh when processing
+  useEffect(() => {
+    if (!project || (project.status !== "processing" && project.status !== "created")) return;
+    const interval = setInterval(async () => {
+      try {
+        const updated = await fetch(`/api/projects/${id}`).then((r) => r.json());
+        setProject(updated);
+        if (updated.status !== "processing") clearInterval(interval);
+      } catch { /* ignore */ }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [id, project?.status]);
 
   if (loading) {
     return (
@@ -109,6 +122,27 @@ export default function ProjectDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Processing Progress */}
+      {project.status === "processing" && project.jobs && project.jobs.length > 0 && (() => {
+        const activeJob = project.jobs.find((j: { status: string }) => j.status === "running" || j.status === "queued");
+        if (!activeJob) return null;
+        return (
+          <div className="mb-8 rounded-xl border border-amber-500/20 bg-amber-500/5 p-5">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-amber-400">Processing...</h3>
+              <span className="text-xs text-zinc-500">{activeJob.message}</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-amber-500 to-indigo-500 transition-all duration-500"
+                style={{ width: `${activeJob.progress ?? 0}%` }}
+              />
+            </div>
+            <p className="mt-2 text-xs text-zinc-500">{activeJob.progress ?? 0}% complete</p>
+          </div>
+        );
+      })()}
 
       {/* Clips */}
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/50">
