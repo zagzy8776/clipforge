@@ -3,13 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
   "scripts": {
     "dev": "tsx src/index.ts",
     "start": "tsx src/index.ts"
   },
   "dependencies": {
+    "@clipforge/ingest": "workspace:*",
     "@clipforge/storage": "workspace:*",
     "@clipforge/core": "workspace:*",
+    "@clipforge/types": "workspace:*",
     "@clipforge/ffmpeg": "workspace:*",
     "@clipforge/ai": "workspace:*",
     "@clipforge/director": "workspace:*",

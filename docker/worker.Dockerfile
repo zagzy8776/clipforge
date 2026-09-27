@@ -16,7 +16,8 @@ RUN pip3 install --break-system-packages \
 RUN pip3 install --break-system-packages \
     openai-whisper \
     opencv-python-headless \
-    numpy
+    numpy \
+    yt-dlp
 
 WORKDIR /app
 COPY packages/ ./packages/
