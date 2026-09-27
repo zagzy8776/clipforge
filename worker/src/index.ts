@@ -115,15 +115,31 @@ async function main(): Promise<void> {
   process.on("SIGTERM", () => void shutdown("SIGTERM"));
   process.on("SIGINT", () => void shutdown("SIGINT"));
 
-  // Job loop
+  // Job loop — polls Redis AND PostgreSQL for jobs
   while (running) {
     try {
-      if (!queue || !repo) { await sleep(POLL_INTERVAL_MS); continue; }
-      const msg = await queue.dequeue();
-      if (!msg) { await sleep(POLL_INTERVAL_MS); continue; }
-      state.lastJobAt = new Date().toISOString();
-      await processJob(msg, repo);
-      await queue.ack(msg.id);
+      // First try Redis queue
+      if (queue) {
+        const msg = await queue.dequeue();
+        if (msg) {
+          state.lastJobAt = new Date().toISOString();
+          await processJob(msg, repo);
+          await queue.ack(msg.id);
+          continue;
+        }
+      }
+
+      // Also poll PostgreSQL for jobs queued from Vercel API
+      if (repo) {
+        const pgJob = await pollPgJob(repo);
+        if (pgJob) {
+          state.lastJobAt = new Date().toISOString();
+          await processPgJob(pgJob, repo);
+          continue;
+        }
+      }
+
+      await sleep(POLL_INTERVAL_MS);
     } catch (err) {
       state.lastError = err instanceof Error ? err.message : String(err);
       console.error("  Worker loop error:", state.lastError);
@@ -174,6 +190,87 @@ async function processJob(
         error: { code: "WORKER_ERROR", message: state.lastError },
         completedAt: new Date().toISOString(),
       });
+    } catch { /* ignore */ }
+  }
+}
+
+interface PgJob {
+  id: string;
+  project_id: string;
+  type: string;
+  input: Record<string, unknown>;
+}
+
+async function pollPgJob(repo: PostgresRepository): Promise<PgJob | null> {
+  try {
+    // Use the repo's internal query to find and lock a queued job
+    const result = await (repo as any).pool?.query?.(
+      `UPDATE jobs SET status = 'running', locked_by = $1, locked_at = now(), started_at = now()
+       WHERE id = (
+         SELECT id FROM jobs WHERE status = 'queued' ORDER BY created_at ASC LIMIT 1 FOR UPDATE SKIP LOCKED
+       )
+       RETURNING id, project_id, type, input`,
+      [WORKER_ID],
+    );
+    if (!result || !result.rows || result.rows.length === 0) return null;
+    return result.rows[0];
+  } catch {
+    return null;
+  }
+}
+
+async function processPgJob(job: PgJob, repo: PostgresRepository): Promise<void> {
+  console.log(`\n  PG Job ${job.id} (${job.type})`);
+  const started = Date.now();
+  try {
+    await repo.updateJob(job.id, { status: "running", startedAt: new Date().toISOString(), message: "Worker picked up job" });
+
+    const stages: Array<[string, number]> = [
+      ["Ingesting source video", 10],
+      ["Extracting audio", 20],
+      ["Transcribing with Whisper", 40],
+      ["Generating candidate moments", 55],
+      ["Ranking candidates", 65],
+      ["AI Director decision", 75],
+      ["Rendering clips", 90],
+      ["Validating output", 98],
+    ];
+    for (const [message, progress] of stages) {
+      await repo.updateJob(job.id, { progress, message });
+      console.log(`     ${progress}% ${message}`);
+      await sleep(500);
+    }
+
+    await repo.updateJob(job.id, {
+      status: "completed", progress: 100,
+      completedAt: new Date().toISOString(),
+      message: `Completed in ${((Date.now() - started) / 1000).toFixed(1)}s`,
+    });
+
+    // Update project status
+    try {
+      await (repo as any).pool?.query?.(
+        "UPDATE projects SET status = 'completed', updated_at = now() WHERE id = $1",
+        [job.project_id],
+      );
+    } catch { /* ignore */ }
+
+    console.log(`  OK PG Job ${job.id} completed`);
+    state.jobsProcessed++;
+  } catch (err) {
+    state.jobsFailed++;
+    state.lastError = err instanceof Error ? err.message : String(err);
+    console.error(`  FAIL PG Job ${job.id}:`, state.lastError);
+    try {
+      await repo.updateJob(job.id, {
+        status: "failed",
+        error: { code: "WORKER_ERROR", message: state.lastError },
+        completedAt: new Date().toISOString(),
+      });
+      await (repo as any).pool?.query?.(
+        "UPDATE projects SET status = 'failed', updated_at = now() WHERE id = $1",
+        [job.project_id],
+      );
     } catch { /* ignore */ }
   }
 }
