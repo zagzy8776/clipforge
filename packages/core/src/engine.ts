@@ -3,7 +3,7 @@ import { join } from "node:path";
 import type { ProgressReporter, Transcript, EngineConfig } from "@clipforge/types";
 import { extractAudio, probe, renderClip } from "@clipforge/ffmpeg";
 import { createProvider } from "@clipforge/ai";
-import { createTranscriptionProvider, groupIntoParagraphs } from "@clipforge/transcription";
+import { createTranscriptionProvider, withFallback, groupIntoParagraphs } from "@clipforge/transcription";
 import { analyzeTranscript, generateCandidates, rankCandidates } from "@clipforge/analysis";
 import { buildRenderPlan, generateCaptions } from "@clipforge/rendering";
 
@@ -51,7 +51,18 @@ export async function runEngine(input: EngineInput): Promise<EngineOutput> {
     // 3. Transcribe
     report({ stage: "transcribe", progress: 0.1, message: "Transcribing..." });
     const t2 = Date.now();
-    const stt = createTranscriptionProvider();
+    const requestedProvider = (config.transcription.provider ?? "auto") as
+      | "silence-based-fallback"
+      | "whisper"
+      | "auto";
+    const primary = createTranscriptionProvider(requestedProvider, {
+      model: config.transcription.model,
+      language: config.transcription.language ?? undefined,
+      device: "cpu",
+    });
+    // Always wrap with a fallback so a transient Whisper failure degrades
+    // gracefully instead of killing the job.
+    const stt = withFallback(primary, createTranscriptionProvider("silence-based-fallback"));
     const rawSegs = await stt.transcribe(audioPath, {
       onProgress: (p) => report({ stage: "transcribe", progress: 0.1 + p * 0.2, message: `Transcribing... ${Math.round(p * 100)}%` }),
     });

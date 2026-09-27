@@ -1,14 +1,22 @@
 import { describe, it, expect } from "vitest";
+import { existsSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { MemoryRepository } from "../packages/storage/src/memory-repository.js";
 import { LocalArtifactStorage } from "../packages/storage/src/artifact-storage.js";
 import { processJob } from "../worker/src/index.js";
 import type { EngineConfig } from "../packages/types/src/index.js";
 
-const FIXTURE = "E:\\video\\clipforge\\input\\test-speech.mp4";
+// Repo-relative fixture path so the test runs on any OS / CI environment.
+// Generate it first with: pnpm generate:fixture
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const FIXTURE = join(__dirname, "..", "input", "test-fixture.mp4");
+const OUTPUT_DIR = join(__dirname, "..", "output", "worker-test");
+const STORAGE_DIR = join(__dirname, "..", "output", "worker-storage");
 
 const config: EngineConfig = {
   projectId: "test-project",
-  outputDir: "E:\\video\\clipforge\\output\\worker-test",
+  outputDir: OUTPUT_DIR,
   targetClips: 3,
   minClipDuration: 20,
   maxClipDuration: 90,
@@ -45,8 +53,12 @@ const config: EngineConfig = {
 
 describe("Worker — real engine end-to-end", () => {
   it("runs a real job through the engine and produces clips", async () => {
+    if (!existsSync(FIXTURE)) {
+      console.log(`  ⚠ Fixture missing: ${FIXTURE}. Run "pnpm generate:fixture" first; skipping.`);
+      return;
+    }
     const repo = new MemoryRepository();
-    const storage = new LocalArtifactStorage("E:\\video\\clipforge\\output\\worker-storage");
+    const storage = new LocalArtifactStorage(STORAGE_DIR);
 
     await repo.createProject({
       id: "test-project",
