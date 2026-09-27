@@ -14,12 +14,6 @@ importers:
       '@aws-sdk/client-s3':
         specifier: ^3.1141.0
         version: 3.1141.0
-      '@ffmpeg-installer/win32-x64':
-        specifier: ^4.1.0
-        version: 4.1.0
-      '@ffprobe-installer/win32-x64':
-        specifier: ^5.1.0
-        version: 5.1.0
       '@types/pg':
         specifier: ^8.23.1
         version: 8.23.1
@@ -87,9 +81,15 @@ importers:
 
   apps/web:
     dependencies:
+      ioredis:
+        specifier: ^6.0.0
+        version: 6.0.0
       next:
         specifier: 16.3.6
         version: 16.3.6(@babel/core@7.29.7)(@types/node@20.19.43)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      pg:
+        specifier: ^8.23.0
+        version: 8.23.0
       react:
         specifier: 19.2.8
         version: 19.2.8
@@ -103,6 +103,9 @@ importers:
       '@types/node':
         specifier: ^20
         version: 20.19.43
+      '@types/pg':
+        specifier: ^8
+        version: 8.23.1
       '@types/react':
         specifier: ^19
         version: 19.3.0
@@ -229,18 +232,18 @@ importers:
       '@clipforge/types':
         specifier: workspace:*
         version: link:../types
-      '@ffmpeg-installer/win32-x64':
-        specifier: ^4.1.0
-        version: 4.1.0
-      '@ffprobe-installer/win32-x64':
-        specifier: ^5.1.0
-        version: 5.1.0
       ffmpeg-static:
         specifier: ^5.3.0
         version: 5.3.0
       ffprobe-static:
         specifier: ^3.1.0
         version: 3.1.0
+
+  packages/ingest:
+    dependencies:
+      '@clipforge/types':
+        specifier: workspace:*
+        version: link:../types
 
   packages/rendering:
     dependencies:
@@ -316,9 +319,15 @@ importers:
       '@clipforge/ffmpeg':
         specifier: workspace:*
         version: link:../packages/ffmpeg
+      '@clipforge/ingest':
+        specifier: workspace:*
+        version: link:../packages/ingest
       '@clipforge/storage':
         specifier: workspace:*
         version: link:../packages/storage
+      '@clipforge/types':
+        specifier: workspace:*
+        version: link:../packages/types
       ioredis:
         specifier: ^6.0.0
         version: 6.0.0
@@ -846,16 +855,6 @@ packages:
   '@eslint/plugin-kit@0.4.1':
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
-
-  '@ffmpeg-installer/win32-x64@4.1.0':
-    resolution: {integrity: sha512-Drt5u2vzDnIONf4ZEkKtFlbvwj6rI3kxw1Ck9fpudmtgaZIHD4ucsWB2lCZBXRxJgXR+2IMSti+4rtM4C4rXgg==}
-    cpu: [x64]
-    os: [win32]
-
-  '@ffprobe-installer/win32-x64@5.1.0':
-    resolution: {integrity: sha512-jMGYeAgkrdn4e2vvYt/qakgHRE3CPju4bn5TmdPfoAm1BlX1mY9cyMd8gf5vSzI8gH8Zq5WQAyAkmekX/8TSTg==}
-    cpu: [x64]
-    os: [win32]
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -3766,10 +3765,6 @@ snapshots:
     dependencies:
       '@eslint/core': 0.17.0
       levn: 0.4.1
-
-  '@ffmpeg-installer/win32-x64@4.1.0': {}
-
-  '@ffprobe-installer/win32-x64@5.1.0': {}
 
   '@humanfs/core@0.19.2':
     dependencies:
