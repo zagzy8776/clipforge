@@ -42,6 +42,9 @@ importers:
         specifier: ^3.24.1
         version: 3.25.76
     devDependencies:
+      '@tailwindcss/postcss':
+        specifier: ^4.3.3
+        version: 4.3.3
       '@types/bcryptjs':
         specifier: ^3.0.0
         version: 3.0.0
