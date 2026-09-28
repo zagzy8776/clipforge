@@ -1,0 +1,11 @@
+{
+  "name": "@clipforge/speaker",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "@clipforge/ffmpeg": "workspace:*"
+  }
+}
