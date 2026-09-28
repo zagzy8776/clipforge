@@ -1,22 +1,8 @@
 {
   "name": "@clipforge/transcription",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "main": "./src/index.ts",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./src/index.ts",
-      "default": "./src/index.ts"
-    }
-  },
-  "scripts": {
-    "build": "tsc -b"
-  },
-  "dependencies": {
-    "@clipforge/ai": "workspace:*",
-    "@clipforge/ffmpeg": "workspace:*",
-    "@clipforge/types": "workspace:*"
-  }
+  "exports": { ".": "./src/index.ts" }
 }
