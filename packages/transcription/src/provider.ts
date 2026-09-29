@@ -2,16 +2,25 @@ import { execFileSync } from "node:child_process";
 import type { TranscriptSegment } from "@clipforge/types";
 import { MockTranscriptionProvider } from "./providers/mock.js";
 import { WhisperTranscriptionProvider } from "./providers/whisper.js";
+import { DeepgramProvider } from "./providers/deepgram.js";
+import { GroqWhisperProvider } from "./providers/groq.js";
+
+export interface TranscriptionOptions {
+  language?: string;
+  onProgress?: (p: number) => void;
+}
 
 export interface TranscriptionProvider {
   readonly name: string;
-  transcribe(audioPath: string, opts?: {
-    language?: string;
-    onProgress?: (p: number) => void;
-  }): Promise<TranscriptSegment[]>;
+  transcribe(audioPath: string, opts?: TranscriptionOptions): Promise<TranscriptSegment[]>;
 }
 
-export type TranscriptionProviderName = "silence-based-fallback" | "whisper" | "auto";
+export type TranscriptionProviderName =
+  | "silence-based-fallback"
+  | "whisper"
+  | "deepgram"
+  | "groq"
+  | "auto";
 
 /**
  * Probe whether the Whisper Python sidecar is actually usable.
@@ -57,8 +66,21 @@ export function createTranscriptionProvider(
   name: TranscriptionProviderName = "auto",
   opts?: { model?: string; language?: string; device?: "cpu" | "cuda" },
 ): TranscriptionProvider {
+  const deepgramKey = process.env.DEEPGRAM_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY;
+
   if (name === "silence-based-fallback") {
     return new MockTranscriptionProvider();
+  }
+
+  if (name === "deepgram") {
+    if (!deepgramKey) throw new Error("DEEPGRAM_API_KEY required for deepgram provider");
+    return new DeepgramProvider({ apiKey: deepgramKey, language: opts?.language ?? "en", diarize: true });
+  }
+
+  if (name === "groq") {
+    if (!groqKey) throw new Error("GROQ_API_KEY required for groq provider");
+    return new GroqWhisperProvider({ apiKey: groqKey, language: opts?.language ?? "en" });
   }
 
   if (name === "whisper") {
@@ -69,7 +91,15 @@ export function createTranscriptionProvider(
     });
   }
 
-  // "auto" — prefer Whisper if the stack is actually importable.
+  // "auto" — prefer a hosted API if a key is configured (faster, no local
+  // compute), then local Whisper if the stack is actually importable,
+  // then the zero-dependency silence-based fallback.
+  if (deepgramKey) {
+    return new DeepgramProvider({ apiKey: deepgramKey, language: opts?.language ?? "en", diarize: true });
+  }
+  if (groqKey) {
+    return new GroqWhisperProvider({ apiKey: groqKey, language: opts?.language ?? "en" });
+  }
   if (whisperAvailable()) {
     return new WhisperTranscriptionProvider({
       model: opts?.model ?? "base",
@@ -77,7 +107,7 @@ export function createTranscriptionProvider(
       device: opts?.device ?? "cpu",
     });
   }
-  console.warn("  ⚠ Whisper stack not importable; falling back to silence-based transcription.");
+  console.warn("  ⚠ No STT provider configured/available; falling back to silence-based transcription.");
   return new MockTranscriptionProvider();
 }
 

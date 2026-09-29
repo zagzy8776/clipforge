@@ -24,17 +24,23 @@ async function main(): Promise<void> {
 
   const ffmpeg = resolveFfmpeg();
 
-  // Create a 60-second test video with:
-  // - Color bars + timer overlay
-  // - Sine wave tone with speech-like modulation
+  // Create a 120-second test video with:
+  // - Plain color-bars pattern (no drawtext — this ffmpeg build's filtergraph
+  //   parser chokes on the %{pts:hms} expansion syntax regardless of escaping)
+  // - A tone silenced at a few well-spaced windows, so silence-based
+  //   heuristic segmentation (the zero-dependency transcription fallback)
+  //   gets segments that actually fall within the engine's default
+  //   minClipDuration/maxClipDuration bounds (20s-90s) — packing silence
+  //   gaps too close together produces only short segments that never
+  //   qualify as a candidate moment at all.
+  const silenceWindows = "between(t,28,30)+between(t,60,62)+between(t,92,94)";
   const args = [
     "-y",
     "-f", "lavfi",
-    "-i", "testsrc2=duration=60:size=1920x1080:rate=30",
+    "-i", "testsrc2=duration=120:size=1920x1080:rate=30",
     "-f", "lavfi",
-    "-i", "sine=frequency=440:duration=60",
-    "-vf",
-    "drawtext=text='%{pts\:hms}':x=10:y=10:fontsize=48:fontcolor=white:borderw=2:bordercolor=black",
+    "-i", "sine=frequency=440:duration=120",
+    "-af", `volume=enable='${silenceWindows}':volume=0`,
     "-c:v", "libx264",
     "-preset", "ultrafast",
     "-crf", "28",
@@ -48,7 +54,7 @@ async function main(): Promise<void> {
   execFileSync(ffmpeg, args, { stdio: "pipe" });
 
   console.log(`  ✓ Generated: ${OUTPUT_FILE}`);
-  console.log(`    Duration: 60s | Resolution: 1920x1080 | Codec: h264/aac`);
+  console.log(`    Duration: 120s | Resolution: 1920x1080 | Codec: h264/aac`);
   console.log(`\n  You can now run: pnpm clipforge input/test-fixture.mp4`);
 }
 

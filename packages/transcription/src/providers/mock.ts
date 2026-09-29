@@ -1,6 +1,6 @@
 import type { TranscriptSegment } from "@clipforge/types";
 import type { TranscriptionProvider } from "../provider.js";
-import { detectSilences } from "@clipforge/ffmpeg";
+import { detectSilence } from "@clipforge/ffmpeg";
 
 /**
  * Fallback transcription provider.
@@ -22,7 +22,7 @@ export class MockTranscriptionProvider implements TranscriptionProvider {
     opts?.onProgress?.(0.1);
 
     // Detect silence to find speech spans
-    const silences = detectSilences(audioPath, -35, 0.5);
+    const silences = detectSilence(audioPath, { noiseDb: -35, minDuration: 0.5 });
 
     // Get total duration via ffprobe (import from @clipforge/ffmpeg)
     const { probe } = await import("@clipforge/ffmpeg");

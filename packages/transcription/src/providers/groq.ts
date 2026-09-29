@@ -1,7 +1,8 @@
 /**
  * Groq Whisper-large-v3-turbo provider — fast production fallback.
  */
-import type { TranscriptionProvider, TranscriptSegment, TranscriptionOptions } from "../types.js";
+import type { TranscriptSegment } from "@clipforge/types";
+import type { TranscriptionProvider, TranscriptionOptions } from "../provider.js";
 import { basename } from "node:path";
 
 export interface GroqConfig { apiKey: string; model?: string; language?: string; }
@@ -40,7 +41,7 @@ export class GroqWhisperProvider implements TranscriptionProvider {
     if (data.segments?.length) {
       return data.segments.map((seg: any, i: number) => ({
         id: i, start: seg.start, end: seg.end, text: seg.text.trim(), confidence: 0.9, speaker: null,
-        words: seg.words?.map((w: any) => ({ word: w.word, start: w.start, end: w.end, confidence: 0.9 })),
+        words: seg.words?.map((w: any) => ({ text: w.word, start: w.start, end: w.end, confidence: 0.9 })),
       }));
     }
     return [{ id: 0, start: 0, end: data.duration ?? 0, text: data.text ?? "", confidence: 0.85, speaker: null }];

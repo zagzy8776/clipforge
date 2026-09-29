@@ -11,7 +11,12 @@
     { "path": "./packages/director" },
     { "path": "./packages/evaluation" },
     { "path": "./packages/core" },
+    { "path": "./packages/storage" },
+    { "path": "./packages/ingest" },
+    { "path": "./packages/speaker" },
+    { "path": "./packages/publishing" },
     { "path": "./apps/cli" },
+    { "path": "./worker" },
     { "path": "./tools" }
   ]
 }

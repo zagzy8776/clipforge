@@ -1,2 +1,2 @@
-export { ingestFromUrl, validateUpload } from "./youtube.js";
-export type { IngestResult, IngestOptions } from "./youtube.js";
+export { downloadFromUrl, validateUrl, validateUpload, uploadFile, guessContentType } from "./youtube.js";
+export type { IngestResult, ValidateResult } from "./youtube.js";

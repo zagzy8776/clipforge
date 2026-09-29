@@ -118,12 +118,12 @@ async function main(): Promise<void> {
   }
 
   // Redis
-  let queue: RedisQueue | null = null;
+  let queue: RedisQueue<JobPayload> | null = null;
   if (!process.env.REDIS_URL) {
     console.error("  x REDIS_URL not set");
   } else {
     try {
-      queue = new RedisQueue(process.env.REDIS_URL);
+      queue = new RedisQueue<JobPayload>(process.env.REDIS_URL);
       state.redis = await queue.ping();
       console.log(state.redis ? "  > Connected to Redis" : "  x Redis ping failed");
     } catch (err) {
@@ -354,23 +354,28 @@ async function processJob(
       progress: (evt) => void bridgeProgress(msg.jobId, repo, evt),
     });
 
-    if (result.status !== "completed" || result.clips.length === 0) {
-      throw new Error(result.error ?? "Engine produced no clips");
+    if (result.status !== "completed") {
+      throw new Error(result.error ?? "Engine failed");
     }
 
     // Upload clips + thumbnails, persist to DB
     if (storage && repo) {
-      await repo.updateJob(msg.jobId, { progress: 90, message: `Uploading ${result.clips.length} clips...` });
-      for (const clip of result.clips) {
-        await persistClip(clip, 0, storage, repo, msg.projectId);
+      if (result.clips.length > 0) {
+        await repo.updateJob(msg.jobId, { progress: 90, message: `Uploading ${result.clips.length} clips...` });
+        for (const clip of result.clips) {
+          await persistClip(clip, 0, storage, repo, msg.projectId);
+        }
       }
       await repo.updateProject(msg.projectId, { status: "completed" });
     }
 
+    const doneMessage = result.clips.length > 0
+      ? `Completed: ${result.clips.length} clips in ${((Date.now() - started) / 1000).toFixed(1)}s`
+      : `Completed — no clip-worthy moments found in ${((Date.now() - started) / 1000).toFixed(1)}s`;
     await repo?.updateJob(msg.jobId, {
       status: "completed", progress: 100,
       completedAt: new Date().toISOString(),
-      message: `Completed: ${result.clips.length} clips in ${((Date.now() - started) / 1000).toFixed(1)}s`,
+      message: doneMessage,
     });
     console.log(`  OK Job ${msg.jobId} completed (${result.clips.length} clips)`);
     state.jobsProcessed++;
@@ -414,7 +419,7 @@ async function pollPgJob(repo: PostgresRepository): Promise<PgJob | null> {
 }
 
 async function processPgJob(job: PgJob, repo: PostgresRepository | null, storage: StorageBackend | null): Promise<void> {
-  const payload = (job.input ?? {}) as JobPayload;
+  const payload: JobPayload = { type: job.type, ...(job.input ?? {}) } as JobPayload;
   console.log(`\n  PG Job ${job.id} (${job.type})`);
   const started = Date.now();
   try {
@@ -435,22 +440,27 @@ async function processPgJob(job: PgJob, repo: PostgresRepository | null, storage
       progress: (evt) => void bridgeProgress(job.id, repo, evt),
     });
 
-    if (result.status !== "completed" || result.clips.length === 0) {
-      throw new Error(result.error ?? "Engine produced no clips");
+    if (result.status !== "completed") {
+      throw new Error(result.error ?? "Engine failed");
     }
 
     if (storage && repo) {
-      await repo.updateJob(job.id, { progress: 90, message: `Uploading ${result.clips.length} clips...` });
-      for (const clip of result.clips) {
-        await persistClip(clip, 0, storage, repo, job.project_id);
+      if (result.clips.length > 0) {
+        await repo.updateJob(job.id, { progress: 90, message: `Uploading ${result.clips.length} clips...` });
+        for (const clip of result.clips) {
+          await persistClip(clip, 0, storage, repo, job.project_id);
+        }
       }
       await repo.updateProject(job.project_id, { status: "completed" });
     }
 
+    const doneMessage = result.clips.length > 0
+      ? `Completed: ${result.clips.length} clips in ${((Date.now() - started) / 1000).toFixed(1)}s`
+      : `Completed — no clip-worthy moments found in ${((Date.now() - started) / 1000).toFixed(1)}s`;
     await repo?.updateJob(job.id, {
       status: "completed", progress: 100,
       completedAt: new Date().toISOString(),
-      message: `Completed: ${result.clips.length} clips in ${((Date.now() - started) / 1000).toFixed(1)}s`,
+      message: doneMessage,
     });
     console.log(`  OK PG Job ${job.id} completed (${result.clips.length} clips)`);
     state.jobsProcessed++;

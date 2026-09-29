@@ -7,7 +7,7 @@
 export { resolveFfmpeg, resolveFfprobe, type BinaryPaths } from "./binary.js";
 export { probe, probeSafe } from "./probe.js";
 export { extractAudio } from "./extract.js";
-export { detectSilences, type SilenceSpan } from "./silence.js";
+export { detectSilence, type SilenceSpan } from "./silence.js";
 export { execFfmpeg, execFfprobe, type ExecResult } from "./exec.js";
 export { buildAssFile, type AssCue } from "./captions.js";
 export { generateThumbnail } from "./thumbnail.js";

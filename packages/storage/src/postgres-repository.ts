@@ -1,5 +1,5 @@
 import type { Project, ProjectClip } from "@clipforge/types";
-import type { ProjectRepository, Job } from "../repository.js";
+import type { ProjectRepository, Job } from "./repository.js";
 import { createRequire } from "node:module";
 
 export class PostgresRepository implements ProjectRepository {

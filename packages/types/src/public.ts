@@ -20,6 +20,15 @@ export * from "./editing-styles.js";
 export * from "./director-plan.js";
 export * from "./creative-profile.js";
 export * from "./creative-evaluation.js";
+export type {
+  Project,
+  ProjectClip,
+  ProjectStats,
+  Timeline,
+  TimelineTrack,
+  TimelineItem,
+} from "./project.js";
+export { projectClipSchema } from "./project.js";
 
 /* -------------------------------------------------------------------------- */
 /* Analysis document                                                          */

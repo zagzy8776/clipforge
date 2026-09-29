@@ -9,6 +9,10 @@
     "dev": "tsx watch src/index.ts"
   },
   "dependencies": {
+    "@clipforge/types": "workspace:*",
+    "@clipforge/core": "workspace:*",
+    "@clipforge/ingest": "workspace:*",
+    "@clipforge/storage": "workspace:*",
     "bullmq": "^5.30.0",
     "ioredis": "^5.4.1"
   }

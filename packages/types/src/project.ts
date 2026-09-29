@@ -12,6 +12,8 @@ export interface Project {
   sourcePath: string;
   sourceUrl?: string;
   status: ProjectStatus;
+  /** Arbitrary engine/ingest config persisted alongside the project (JSONB column). */
+  config?: Record<string, unknown>;
   /** Transcript segments from Whisper. */
   segments: Array<{ id: number; start: number; end: number; text: string; words?: Array<{ text: string; start: number; end: number }> }>;
   /** AI-identified sections. */
@@ -29,6 +31,8 @@ export interface Project {
 export interface ProjectClip {
   id: string;
   index: number;
+  /** Explicit DB ordering rank, when it differs from index. */
+  rank?: number;
   /** Source timestamps. */
   sourceStart: number;
   sourceEnd: number;

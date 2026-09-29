@@ -57,6 +57,7 @@ export interface TranscriptWord {
   text: string;
   start: number;
   end: number;
+  confidence?: number;
 }
 
 /** A timestamped speech segment. The atomic unit of analysis. */
@@ -67,6 +68,8 @@ export interface TranscriptSegment {
   text: string;
   words?: TranscriptWord[];
   speaker?: string | null;
+  /** STT provider confidence, when the provider reports one (0-1). */
+  confidence?: number;
 }
 
 export const transcriptWordSchema = z.object({

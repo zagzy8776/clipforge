@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { resolveFfmpeg } from "./binary.js";
 
 export interface SilenceSpan { start: number; end: number; duration: number; }
 
@@ -7,7 +8,7 @@ export function detectSilence(audioOrVideoPath: string, options: { noiseDb?: num
   const minDur = options.minDuration ?? 0.4;
   let log = "";
   try {
-    execFileSync("ffmpeg", ["-i", audioOrVideoPath, "-af", `silencedetect=noise=${noise}dB:d=${minDur}`, "-f", "null", "-"], { encoding: "utf-8", stdio: ["ignore", "pipe", "pipe"] });
+    execFileSync(resolveFfmpeg(), ["-i", audioOrVideoPath, "-af", `silencedetect=noise=${noise}dB:d=${minDur}`, "-f", "null", "-"], { encoding: "utf-8", stdio: ["ignore", "pipe", "pipe"] });
   } catch (err: any) {
     log = err.stderr?.toString?.() ?? "";
   }

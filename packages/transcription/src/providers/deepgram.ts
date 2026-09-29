@@ -2,7 +2,8 @@
  * Deepgram Nova-3 provider — production primary STT.
  * Word-level timestamps + speaker diarization.
  */
-import type { TranscriptionProvider, TranscriptSegment, TranscriptionOptions } from "../types.js";
+import type { TranscriptSegment } from "@clipforge/types";
+import type { TranscriptionProvider, TranscriptionOptions } from "../provider.js";
 
 export interface DeepgramConfig {
   apiKey: string;
@@ -77,7 +78,7 @@ export class DeepgramProvider implements TranscriptionProvider {
           current.end = word.end;
           current.text += " " + (word.punctuated_word ?? word.word);
         }
-        current.words!.push({ word: word.word, start: word.start, end: word.end, confidence: word.confidence ?? 0.9 });
+        current.words!.push({ text: word.word, start: word.start, end: word.end, confidence: word.confidence ?? 0.9 });
       }
       if (current) segments.push(current);
     } else if (results.transcript) {
